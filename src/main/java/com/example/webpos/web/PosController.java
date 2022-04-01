@@ -19,15 +19,29 @@ public class PosController {
     private Cart cart;
 
     @Autowired
+    private HttpSession session;
+
+
     public void setCart(Cart cart) {
         this.cart = cart;
+    }
+
+    public Cart getCart() {
+        Cart cart = (Cart) session.getAttribute("cart");
+        if(cart == null) {
+            cart = new Cart();
+            this.setCart(cart);
+        }
+        return cart;
     }
 
     @Autowired
     public void setPosService(PosService posService) {
         this.posService = posService;
     }
-
+    public void saveCart(Cart cart) {
+        session.setAttribute("cart",cart);
+    }
     @GetMapping("/")
     public String pos(Model model) {
         model.addAttribute("products", posService.products());
@@ -37,7 +51,7 @@ public class PosController {
 
     @GetMapping("/add")
     public String addByGet(@RequestParam(name = "pid") String pid, Model model) {
-        posService.add(cart, pid, 1);
+        saveCart(posService.add(getCart(), pid, 1));
         model.addAttribute("products", posService.products());
         model.addAttribute("cart", cart);
         return "index";
